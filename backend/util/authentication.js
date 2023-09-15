@@ -8,7 +8,7 @@ async function verifyToken(req, res, next) {
   try {
     const decodedToken = jwt.verify(token, secretKey);
     const userId = decodedToken;
-    const user = await User.findByPk(userId);
+    const user = await User.findById(userId);
     req.user = user;
     console.log(req.user.id);
     next();

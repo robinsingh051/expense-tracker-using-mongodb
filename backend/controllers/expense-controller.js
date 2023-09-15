@@ -1,9 +1,11 @@
 const Expense = require("../models/expense");
-const sequelize = require("../util/database");
+const User = require("../models/user");
+
+const mongoose = require("mongoose");
 
 exports.getExpenses = async (req, res, next) => {
   try {
-    const expenses = await req.user.getExpenses();
+    const expenses = await Expense.find({ userId: req.user._id });
     res.json(expenses);
   } catch (err) {
     console.log(err);
@@ -16,24 +18,20 @@ exports.postExpenses = async (req, res, next) => {
   const cat = req.body.cat;
   console.log(expense, desc, cat);
 
-  const t = await sequelize.transaction();
   try {
     if (!req.user) {
       return res.status(401).json({ message: "User not authenticated" });
     }
-    const newExpense = await req.user.createExpense(
-      {
-        expense: expense,
-        desc: desc,
-        cat: cat,
-      },
-      { transaction: t }
-    );
+    const newExpense = await Expense.create({
+      expense: expense,
+      desc: desc,
+      cat: cat,
+      userId: req.user._id,
+    });
     req.user.totalExpense += parseInt(expense);
-    await req.user.save({ transaction: t });
-    await t.commit();
-    console.log(newExpense.id);
-    res.status(201).json(newExpense.get());
+    await req.user.save();
+    console.log(newExpense);
+    res.status(201).json(newExpense);
   } catch (err) {
     console.log(err);
     await t.rollback();
@@ -43,25 +41,42 @@ exports.postExpenses = async (req, res, next) => {
 exports.getExpense = async (req, res, next) => {
   const expenseId = req.params.id;
   try {
-    const expenses = await req.user.getExpenses({ where: { id: expenseId } });
-    res.json(expenses[0]);
+    if (!req.user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    const expense = await Expense.findOne({
+      _id: expenseId,
+      userId: req.user._id,
+    });
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+    res.status(200).json(expense);
   } catch (err) {
     console.log(err);
+    res.status(500).json({ error: "An error occurred" });
   }
 };
 
 exports.deleteExpense = async (req, res, next) => {
   const expenseId = req.params.id;
-  const t = await sequelize.transaction();
   try {
-    const expenses = await req.user.getExpenses({ where: { id: expenseId } });
-    req.user.totalExpense -= expenses[0].expense;
-    await req.user.save({ transaction: t });
-    await expenses[0].destroy({ transaction: t });
-    await t.commit();
+    if (!req.user) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    const expense = await Expense.findOne({
+      _id: expenseId,
+      userId: req.user._id,
+    });
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+    req.user.totalExpense -= expense.expense;
+    await req.user.save();
+    await expense.deleteOne();
     res.status(204).json({ success: "Expense is deleted" });
   } catch (err) {
     console.log(err);
-    t.rollback();
+    res.status(500).json({ error: "An error occurred" });
   }
 };

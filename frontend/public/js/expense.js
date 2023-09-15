@@ -25,7 +25,7 @@ axios.defaults.headers.common["Authorization"] = `${token}`;
 async function getPremiumStatus() {
   try {
     const premiumStatus = await axios.get(
-      "http://52.90.255.137:3000/purchase/checkpremium"
+      "http://localhost:3000/purchase/checkpremium"
     );
     premiumUser.innerHTML = "<span>You are premium user now</span>";
     // Create the leaderboard button
@@ -72,7 +72,7 @@ async function onSubmit(e) {
         cat: cat.value,
       };
       const response = await axios.post(
-        "http://52.90.255.137:3000/expenses",
+        "http://localhost:3000/expenses",
         newDetails
       );
       console.log(response.data);
@@ -118,7 +118,7 @@ async function removeItem(e) {
       try {
         const li = e.target.parentElement;
         const response = await axios.delete(
-          `http://52.90.255.137:3000/expense/${li.id}`
+          `http://localhost:3000/expense/${li.id}`
         );
         console.log(response);
         expenseList.removeChild(li);
@@ -134,15 +134,13 @@ async function editItem(e) {
     if (confirm("Are You Sure?")) {
       try {
         const li = e.target.parentElement;
-        const res = await axios.get(
-          `http://52.90.255.137:3000/expense/${li.id}`
-        );
+        const res = await axios.get(`http://localhost:3000/expense/${li.id}`);
         expense.value = res.data.expense;
         desc.value = res.data.desc;
         cat.value = res.data.cat;
 
         const deleteResponse = await axios.delete(
-          `http://52.90.255.137:3000/expense/${li.id}`
+          `http://localhost:3000/expense/${li.id}`
         );
         console.log(deleteResponse);
 
@@ -157,7 +155,7 @@ async function editItem(e) {
 //Run the function after the script is loaded in the browser
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const response = await axios.get("http://52.90.255.137:3000/expenses");
+    const response = await axios.get("http://localhost:3000/expenses");
     for (let i = 0; i < response.data.length; i++) {
       showData(response.data[i]);
     }
@@ -169,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 //payments function implementation
 async function payments(e) {
   const response = await axios.get(
-    "http://52.90.255.137:3000/purchase/premiummembership"
+    "http://localhost:3000/purchase/premiummembership"
   );
   console.log(response);
   var options = {
@@ -177,7 +175,7 @@ async function payments(e) {
     order_id: response.data.order.id,
     handler: async function (response) {
       await axios.post(
-        "http://52.90.255.137:3000/purchase/updatetransactionstatus",
+        "http://localhost:3000/purchase/updatetransactionstatus",
         {
           order_id: options.order_id,
           payment_id: response.razorpay_payment_id,
@@ -193,7 +191,7 @@ async function payments(e) {
         console.log("Payment failed or dismissed");
         alert("Payment failed or dismissed");
         await axios.post(
-          "http://52.90.255.137:3000/purchase/failedtransactionstatus",
+          "http://localhost:3000/purchase/failedtransactionstatus",
           {
             order_id: options.order_id,
           }
@@ -222,7 +220,7 @@ function logout() {
 async function leaderBoard() {
   try {
     const response = await axios.get(
-      "http://52.90.255.137:3000/purchase/getleaderboard"
+      "http://localhost:3000/purchase/getleaderboard"
     );
     const userExpenses = response.data;
     console.log(userExpenses);
@@ -252,9 +250,7 @@ function showLeaderBoard(leaderBoardList, userExpense) {
 
 async function download() {
   try {
-    const response = await axios.get(
-      "http://52.90.255.137:3000/users/download"
-    );
+    const response = await axios.get("http://localhost:3000/users/download");
     if (response.status === 200) {
       // The backend is sending a download link
       // which if we open in the browser, the file would download
@@ -272,7 +268,7 @@ async function download() {
 
 // showfilesBtn.addEventListener("click", async () => {
 //   try {
-//     const response = await axios.get("http://52.90.255.137:3000/users/getfiles");
+//     const response = await axios.get("http://localhost:3000/users/getfiles");
 //     const files = response.data;
 //     console.log(files);
 //   } catch (error) {
@@ -285,7 +281,7 @@ let currentPage = 1; // Initialize current page
 showfilesBtn.addEventListener("click", async () => {
   try {
     const response = await axios.get(
-      `http://52.90.255.137:3000/users/getfiles?page=${currentPage}`
+      `http://localhost:3000/users/getfiles?page=${currentPage}`
     );
     const files = response.data.files;
     const count = response.data.totalFiles;
@@ -361,7 +357,7 @@ showfilesBtn.addEventListener("click", async () => {
 async function updateFilesTable() {
   try {
     const response = await axios.get(
-      `http://52.90.255.137:3000/users/getfiles?page=${currentPage}`
+      `http://localhost:3000/users/getfiles?page=${currentPage}`
     );
     const files = response.data.files;
     console.log(files);

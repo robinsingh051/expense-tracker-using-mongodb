@@ -26,12 +26,13 @@ async function onSubmit(e) {
     try {
       // post to backend using axios
       const response = await axios.post(
-        "http://52.90.255.137:3000/users/forgetpassword",
+        "http://localhost:3000/users/forgetpassword",
         newDetails
       );
       console.log(response.data);
       alert("Password Reset link is sent to given email id");
     } catch (err) {
+      alert("Please enter registered email id");
       console.log(err);
     }
   }
